@@ -1,5 +1,5 @@
 # TAL-Noisemaker-3.22Plus
-Additions and enhancements to TAL Noisemaker 3.22 as forked from DISTRHO.  I see the latest windows code is 4.22 but I couldn't find it, so I decided to make my revs on this version.  As of writing this, I am fairly new to GitHub, so for now, this will be a stand-alone repository.
+Additions and enhancements to TAL Noisemaker 3.22 as forked from DISTRHO.  I see the latest windows binary version is 4.22 but I couldn't find the code for it, so I decided to make my revs on this version.  As of writing this, I am fairly new to GitHub, so for now, this will be a stand-alone repository.
 
 Here are the new features.
 
