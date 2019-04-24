@@ -254,8 +254,9 @@ TalComponent::TalComponent (TalCore* const ownerFilter)
     panicButton = addNormalButton(this->logoPanel, 620, 5, ownerFilter, buttonImage, true, PANIC);
 
     //Burl26 April 2019 changed load/save to text buttons and thereby removed the parameter links
-    loadButton = addTextButton(this->logoPanel, 395, -8, 70, 20, "Load Prog");
-    saveButton = addTextButton(this->logoPanel, 395, 16, 70, 20, "Save Prog");
+    loadButton = addTextButton(this->logoPanel, 388, -8, 83, 20, "Load Prog");
+    saveAllButton = addTextButton(this->logoPanel, 388, 16, 40, 20, "Sv All");
+    saveProgButton = addTextButton(this->logoPanel, 388+43, 16, 40, 20, "Sv Cur");
 
     //Burl26 April 2019 added these controls
     midiGlobalLearnButton = addNormalButton(this->logoPanel, 560, 14, ownerFilter, buttonImage, false, 0);
@@ -516,118 +517,137 @@ void TalComponent::updateInfo(Slider* caller)
 void TalComponent::buttonClicked (Button* caller)
 {
     TalCore* const filter = getProcessor();
-    NamedValueSet values = caller->getProperties();
-    if (values.contains(Identifier("index")))
-    {
-        filter->setParameterNotifyingHost((int)values["index"], (float)caller->getToggleState());
-    } else
-    {
-		//Burl26 - April 2019 - handle other buttons including the combobox buttons
-		if (caller == progNextButton) {
-			int i=(filter->getCurrentProgram() + 1) % filter->getNumPrograms();
-			filter->setCurrentProgram(i);
-		} else if (caller == progPrevButton) {
-			int i=(filter->getCurrentProgram() + filter->getNumPrograms() - 1) % filter->getNumPrograms();
-			filter->setCurrentProgram(i);
-		} else if (caller == progInitButton) {
-			filter->initCurrentProgram();
-			filter->getEnvelopeEditor()->initializePoints();
-			filter->getEnvelopeEditor()->setDirty();
-			filter->setCurrentProgram(filter->getCurrentProgram());
-		} else if (caller == progRenameButton) {
-			AlertWindow aw ("Program Rename", "",  AlertWindow::NoIcon);
-			aw.addTextEditor("text",filter->getProgramName(filter->getCurrentProgram()),"",false);
-            aw.addButton ("OK",     1, KeyPress (KeyPress::returnKey, 0, 0));
-            aw.addButton ("Cancel", 0, KeyPress (KeyPress::escapeKey, 0, 0));
-			if (aw.runModalLoop() != 0)
+	//Burl26 - April 2019 - handle other buttons including the combobox buttons
+	if (caller == progNextButton) {
+		int i=(filter->getCurrentProgram() + 1) % filter->getNumPrograms();
+		filter->setCurrentProgram(i);
+	} else if (caller == progPrevButton) {
+		int i=(filter->getCurrentProgram() + filter->getNumPrograms() - 1) % filter->getNumPrograms();
+		filter->setCurrentProgram(i);
+	} else if (caller == progInitButton) {
+		filter->initCurrentProgram();
+		filter->getEnvelopeEditor()->initializePoints();
+		filter->getEnvelopeEditor()->setDirty();
+		filter->setCurrentProgram(filter->getCurrentProgram());
+	} else if (caller == progRenameButton) {
+		AlertWindow aw ("Program Rename", "",  AlertWindow::NoIcon);
+		aw.addTextEditor("text",filter->getProgramName(filter->getCurrentProgram()),"",false);
+		aw.addButton ("OK",     1, KeyPress (KeyPress::returnKey, 0, 0));
+		aw.addButton ("Cancel", 0, KeyPress (KeyPress::escapeKey, 0, 0));
+		if (aw.runModalLoop() != 0)
+		{
+			String s = aw.getTextEditorContents("text");
+			if (s != "")
 			{
-				String s = aw.getTextEditorContents("text");
-				if (s != "")
-				{
-					filter->renameProgram(s);
-				}
+				filter->renameProgram(s);
 			}
-		} else if (caller == loadButton)
+		}
+	} else if (caller == loadButton)
+	{
+		FileChooser myChooser ("Please choose a valid NoiseMaker preset.",
+							   File::getSpecialLocation (File::userHomeDirectory),
+							   "*.noisemakerpreset");
+
+		if (myChooser.browseForFileToOpen())
 		{
-            FileChooser myChooser ("Please choose a valid NoiseMaker preset.",
-                                   File::getSpecialLocation (File::userHomeDirectory),
-                                   "*.noisemakerpreset");
+			File selectedFile = myChooser.getResult();
 
-            if (myChooser.browseForFileToOpen())
-            {
-                File selectedFile = myChooser.getResult();
-
-                //Burl26 - a file named factory.noisemakerpreset will return the programs
-                //back to the factory defaults
-                if (selectedFile.getFileNameWithoutExtension() == "factory")
-                {
-                	filter->factoryReset();
-                } else
-                {
-					XmlDocument myDocument(selectedFile.loadFileAsString());
-					XmlElement* mainElement = myDocument.getDocumentElement();
-
-					if (mainElement != NULL)
-					{
-						//Burl26 -April2019 -Get all the program info
-					   filter->setStateInformationFromXml(mainElement);
-					}
-                }
-            }
-		} else if (caller == saveButton)
-		{
-            FileChooser myChooser("Save all NoiseMaker presets.",
-                                   File::getSpecialLocation(File::userHomeDirectory),
-                                   "*.noisemakerpreset");
-
-            if (myChooser.browseForFileToSave(true))
-            {
-                File selectedFile = myChooser.getResult();
-
-                if (!selectedFile.getFileExtension().equalsIgnoreCase(".noisemakerpreset"))
-                {
-                    selectedFile = selectedFile.getFullPathName() + ".noisemakerpreset";
-                }
-
-                //Burl26 -April2019 -Get all the program info
-                XmlElement* const xmlState = filter->getAllProgramStateInformationAsXml();
-                String myXmlDoc = xmlState->createDocument("");
-                selectedFile.replaceWithText(myXmlDoc);
-                delete xmlState;
-            }
-		} else if (caller == midiGlobalLearnButton) {
-	    	filter->midiProgLearnFlag = 0;
-	    	filter->midiGlobalLearnFlag = caller->getToggleState();
-	    } else if (caller == midiProgLearnButton) {
-	    	filter->midiGlobalLearnFlag = 0;
-	    	filter->midiProgLearnFlag = caller->getToggleState();
-	    } else
-		{
-			// if the caller is a combobox, show the popup
-			String sID = caller->getComponentID();
-			if (sID == "C")
+			//Burl26 - a file named factory.noisemakerpreset will return the programs
+			//back to the factory defaults
+			if (selectedFile.getFileNameWithoutExtension() == "factory")
 			{
-				TalTextButton *ttb = (TalTextButton *)caller;
-				TalComboBox *tcb = (TalComboBox *)ttb->cbparent;
-				if (tcb)
+				filter->factoryReset();
+			} else
+			{
+				XmlDocument myDocument(selectedFile.loadFileAsString());
+				XmlElement* mainElement = myDocument.getDocumentElement();
+
+				if (mainElement != NULL)
 				{
-					// if the calling box is the program chooser, populate the combo box with
-					// the current program list
-					if (tcb == progChooser)
-					{
-						progChooser->clear();
-						for (int i=0; i < filter->getNumPrograms(); i++)
-						{
-							progChooser->addItem(filter->getProgramName(i),i+1);
-						}
-						progChooser->setSelectedItemIndex(filter->getCurrentProgram(),true);
-					}
-					tcb->showPopup();
+					//Burl26 -April2019 -Get all the program info
+				   filter->setStateInformationFromXml(mainElement);
 				}
 			}
 		}
-    }
+	} else if (caller == saveAllButton)
+	{
+		FileChooser myChooser("Save all NoiseMaker presets.",
+							   File::getSpecialLocation(File::userHomeDirectory),
+							   "*.noisemakerpreset");
 
+		if (myChooser.browseForFileToSave(true))
+		{
+			File selectedFile = myChooser.getResult();
+
+			if (!selectedFile.getFileExtension().equalsIgnoreCase(".noisemakerpreset"))
+			{
+				selectedFile = selectedFile.getFullPathName() + ".noisemakerpreset";
+			}
+
+			//Burl26 -April2019 -Get all the program info
+			XmlElement* const xmlState = filter->getAllProgramStateInformationAsXml();
+			String myXmlDoc = xmlState->createDocument("");
+			selectedFile.replaceWithText(myXmlDoc);
+			delete xmlState;
+		}
+	} else if (caller == saveProgButton)
+	{
+		FileChooser myChooser("Save current NoiseMaker preset.",
+							   File::getSpecialLocation(File::userHomeDirectory),
+							   "*.noisemakerpreset");
+
+		if (myChooser.browseForFileToSave(true))
+		{
+			File selectedFile = myChooser.getResult();
+
+			if (!selectedFile.getFileExtension().equalsIgnoreCase(".noisemakerpreset"))
+			{
+				selectedFile = selectedFile.getFullPathName() + ".noisemakerpreset";
+			}
+
+			//Burl26 -April2019 -Get all the program info
+			XmlElement* const xmlState = filter->getCurrentProgramStateInformationAsXml();
+			String myXmlDoc = xmlState->createDocument("");
+			selectedFile.replaceWithText(myXmlDoc);
+			delete xmlState;
+		}
+	} else if (caller == midiGlobalLearnButton) {
+		filter->midiProgLearnFlag = 0;
+		filter->midiGlobalLearnFlag = caller->getToggleState();
+	} else if (caller == midiProgLearnButton) {
+		filter->midiGlobalLearnFlag = 0;
+		filter->midiProgLearnFlag = caller->getToggleState();
+	} else
+	{
+		// if the caller is a combobox, show the popup
+		String sID = caller->getComponentID();
+		if (sID == "C")
+		{
+			TalTextButton *ttb = (TalTextButton *)caller;
+			TalComboBox *tcb = (TalComboBox *)ttb->cbparent;
+			if (tcb)
+			{
+				// if the calling box is the program chooser, populate the combo box with
+				// the current program list
+				if (tcb == progChooser)
+				{
+					progChooser->clear();
+					for (int i=0; i < filter->getNumPrograms(); i++)
+					{
+						progChooser->addItem(filter->getProgramName(i),i+1);
+					}
+					progChooser->setSelectedItemIndex(filter->getCurrentProgram(),true);
+				}
+				tcb->showPopup();
+			}
+		} else {
+			NamedValueSet values = caller->getProperties();
+			if (values.contains(Identifier("index")))
+			{
+				filter->setParameterNotifyingHost((int)values["index"], (float)caller->getToggleState());
+			}
+		}
+	}
     this->handleClickedTabs(caller);
 }
 

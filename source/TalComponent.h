@@ -255,7 +255,8 @@ private:
 	ImageToggleButton *midiProgLearnButton;    //Burl26 Return of MIDI Learn!
 	//Burl26 - modified controls
 	TextButton *loadButton;
-	TextButton *saveButton;
+	TextButton *saveAllButton;
+	TextButton *saveProgButton;
 	// Burl26 end
 
 //    ImageToggleButton *loadButton;
