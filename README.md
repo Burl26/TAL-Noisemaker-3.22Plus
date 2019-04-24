@@ -25,10 +25,10 @@ of the host function, but it's always nice to have this on the GUI editor.
 
 5. Added the INIT button to clear the current program.  Always nice for starting from a baseline.  BUT! WARNING! I don't ask "are you sure" so be sure you save using "store parameter" button before using the INIT button!
 
-6. Changed the "store parameter" button so you store ALL the program presets.  Now you can use a XML tool to manage your presets.  On load, if there is only one program, it will be loaded into the current program, just like it used to do.  If there are multiple, it will start loading at program 0 UNLESS you set set the startprogram attribute in the <tal> tag.
+6. Split the "store parameter" button into "Sv All" (save all) and "Sv Cur" (save current) so you store all your the programs or just the current one.  Thereafter, you can use a XML tool to manage your presets.  On load, if there is only one program, it will be loaded into the current program, just like it used to do.  If there are multiple, it will start loading at program 0 UNLESS you set set the startprogram attribute in the <tal> tag.
 example:
 <tal curprogram="55" version="1.7" startprogram="3">
-will start loading at program 3.
+will start loading at program 3 regardless of the curprogram parameter.
 
 7. Changed midiMap[] array size to 128 since MIDI spec allows for only 128 controllers and this reduces loop times (TalPreset.h has declaration)
 
@@ -42,11 +42,6 @@ will start loading at program 3.
 
 12. Reset back to the factory default by loading a dummy file named factory.noisemakerpreset
 
-## TODO:
--Option to turn off velocity or fix velocity.
--Option to save current program.  That turned out to be a handy thing.
--Use the current directory as the starting point for loading programs.
--I broke the MIDI learn buttons.  This needs to be fixed.
 
 ## Modified Panel
 ![alt text](./TAL-Noisemaker_3.22+.png "TAL Noisemaker 3.22+")
