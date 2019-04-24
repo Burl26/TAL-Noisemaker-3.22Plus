@@ -326,13 +326,13 @@
  #define JucePlugin_Enable_IAA             0
 #endif
 #ifndef  JucePlugin_Name
- #define JucePlugin_Name                   "jucetest1"
+ #define JucePlugin_Name                   "TAL Noisemaker"
 #endif
 #ifndef  JucePlugin_Desc
- #define JucePlugin_Desc                   "jucetest1"
+ #define JucePlugin_Desc                   "TAL Noisemaker"
 #endif
 #ifndef  JucePlugin_Manufacturer
- #define JucePlugin_Manufacturer           "yourcompany"
+ #define JucePlugin_Manufacturer           "Togu Audio Line[orig]"
 #endif
 #ifndef  JucePlugin_ManufacturerWebsite
  #define JucePlugin_ManufacturerWebsite    ""
@@ -437,7 +437,7 @@
  #define JucePlugin_IAASubType             JucePlugin_PluginCode
 #endif
 #ifndef  JucePlugin_IAAName
- #define JucePlugin_IAAName                "yourcompany: jucetest1"
+ #define JucePlugin_IAAName                "Togu Audio Line[orig]: TAL Noisemaker"
 #endif
 #ifndef  JucePlugin_VSTNumMidiInputs
  #define JucePlugin_VSTNumMidiInputs       16
